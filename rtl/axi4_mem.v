@@ -7,14 +7,18 @@ module axi4_mem
     parameter ATX_LEN_W         = 8,
     parameter ATX_SIZE_W        = 3,
     parameter ATX_RESP_W        = 2,
+    parameter ATX_OUSTD_NUM     = 1, // Number of outstanding AXI transactions
     // Memory
     parameter MEM_BASE_ADDR     = 32'h0000_0000,    // Address mapping - BASE
     parameter MEM_OFFSET        = (ATX_DATA_W/8),       // Address mapping - OFFSET ---> Address (byte-access) = (base + offset*n)
     parameter MEM_DATA_W        = ATX_DATA_W,           // Memory's data width
     parameter MEM_ADDR_W        = 5,                // Memory's address width
-    parameter MEM_SIZE          = 1<<MEM_ADDR_W,    // Memory size
     parameter MEM_LATENCY       = 1,                // Memory latency
-    parameter MEM_INIT_FILE     = ""                // Initial value in Memory
+    parameter MEM_INIT_FILE     = "",               // Initial value in Memory
+    // Memory region 
+    parameter NUM_REGION        = 1,
+    parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {NUM_REGION{MEM_BASE_ADDR}},
+    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {NUM_REGION{32'd0}},
 ) (
     // -- Global 
     input                           clk,
@@ -60,7 +64,8 @@ module axi4_mem
     wire                    mem_wr_vld;
     wire [MEM_ADDR_W-1:0]   mem_rd_addr;
     wire                    mem_rd_vld;
-
+generate
+if(NUM_REGION == 1) begin : PASS_DIRECTLY
     // Module instantiation
     axi4_ctrl #(
         .AXI4_CTRL_CONF     (0),
@@ -72,7 +77,7 @@ module axi4_mem
         .MEM_OFFSET         (MEM_OFFSET),
         .MEM_DATA_W         (MEM_DATA_W),
         .MEM_ADDR_W         (MEM_ADDR_W),
-        .MEM_SIZE           (MEM_SIZE),
+        .MEM_SIZE           (REGION_SIZE),
         .MEM_LATENCY        (MEM_LATENCY),
         .DATA_W             (ATX_DATA_W),
         .ADDR_W             (ATX_ADDR_W),
@@ -130,7 +135,7 @@ module axi4_mem
     memory #(
         .DATA_W             (MEM_DATA_W),
         .ADDR_W             (MEM_ADDR_W),
-        .MEM_SIZE           (MEM_SIZE),
+        .MEM_SIZE           (REGION_SIZE),
         .MEM_FILE           (MEM_INIT_FILE)
     ) mem (
         .clk                (clk),
@@ -144,4 +149,6 @@ module axi4_mem
         .rd_data_o          (mem_rd_data),
         .rd_rdy_o           (mem_rd_rdy)
     );
+end
+endgenerate
 endmodule
