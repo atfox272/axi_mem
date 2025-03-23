@@ -1,4 +1,4 @@
-module am_dsp_write #(
+module amem_dsp_write #(
     // AXI4 BUS 
     parameter ATX_DATA_W        = 256,
     parameter ATX_ADDR_W        = 32,
@@ -9,14 +9,10 @@ module am_dsp_write #(
     parameter ATX_OUSTD_NUM     = 1, // Number of outstanding AXI transactions
     // Memory
     parameter MEM_BASE_ADDR     = 32'h0000_0000,    // Address mapping - BASE
-    parameter MEM_ADDR_W        = 5,                // Memory's address width
-    parameter MEM_SIZE          = 1<<MEM_ADDR_W,    // Memory size
-    parameter MEM_LATENCY       = 1,                // Memory latency
-    parameter MEM_INIT_FILE     = "",               // Initial value in Memory
     // Memory region 
-    parameter NUM_REGION       = 1,
+    parameter NUM_REGION        = 1,
     parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {NUM_REGION{MEM_BASE_ADDR}},
-    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {NUM_REGION{32'd0}},
+    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {NUM_REGION{32'd0}}
 ) (    
     // -- Global 
     input                               clk,
@@ -55,12 +51,14 @@ module am_dsp_write #(
     input   [NUM_REGION*ATX_ID_W-1:0]   m_bid,
     input   [NUM_REGION*ATX_RESP_W-1:0] m_bresp,
     input   [NUM_REGION-1:0]            m_bvalid,
-    output  [NUM_REGION-1:0]            m_bready,
+    output  [NUM_REGION-1:0]            m_bready
 );  
     // Local pararmeters
-    localparam AW_INFO_W = ATX_ID_W + ATX_ADDR_W + 2 + ATX_LEN_W;
-    localparam W_INFO_W  = ATX_DATA_W + 1;
-    localparam B_INFO_W  = ATX_ID_W + ATX_RESP_W;
+    localparam AW_INFO_W        = ATX_ID_W + ATX_ADDR_W + 2 + ATX_LEN_W;
+    localparam W_INFO_W         = ATX_DATA_W + 1;
+    localparam B_INFO_W         = ATX_ID_W + ATX_RESP_W;
+    localparam NUM_REGION_IDX_W = ($clog2(NUM_REGION) > 1) ? $clog2(NUM_REGION) : 1;
+    localparam PROC_OUTSTD_NUM  = (ATX_OUSTD_NUM > 2) ? ATX_OUSTD_NUM : 2; // Min = 2
     // Internal variables
     genvar region_idx;
     // Internal signal
@@ -86,8 +84,9 @@ module am_dsp_write #(
     
     wire    [ATX_ID_W-1:0]          m_bid_dist      [0:NUM_REGION-1];
     wire    [ATX_RESP_W-1:0]        m_bresp_dist    [0:NUM_REGION-1];
-    wire                            m_bvalid_dist   [0:NUM_REGION-1];
-    wire                            m_bready_dist   [0:NUM_REGION-1];
+    wire    [NUM_REGION-1:0]        m_bvalid_dist;
+    wire    [NUM_REGION-1:0]        m_bready_dist;
+    wire    [NUM_REGION_IDX_W-1:0]  m_bvalid_map;
 
     // Module instantiation
     // -- AW channel
@@ -107,7 +106,7 @@ module am_dsp_write #(
     sync_fifo #(
         .FIFO_TYPE      (1),    // Norma;
         .DATA_WIDTH     (NUM_REGION),
-        .FIFO_DEPTH     (ATX_OUSTD_NUM),
+        .FIFO_DEPTH     (PROC_OUTSTD_NUM)
     ) s_aw_order (
         .clk            (clk),
         .data_i         (aw_region_map),
@@ -130,15 +129,26 @@ module am_dsp_write #(
     ) s_w_sb (
         .clk            (clk),
         .rst_n          (rst_n),
-        .bwd_data_i     ({m_bid, m_bresp}),
-        .bwd_valid_i    (m_bvalid),
-        .bwd_ready_o    (m_bready),
+        .bwd_data_i     ({s_wdata_i, s_wlast_i}),
+        .bwd_valid_i    (s_wvalid_i),
+        .bwd_ready_o    (s_wready_o),
         .fwd_data_o     ({s_wdata,   s_wlast}),
         .fwd_valid_o    (s_wvalid),
         .fwd_ready_i    (s_wready)
     );
     // -- B channel
 generate
+if(NUM_REGION > 1) begin : MULT_REGION
+    priority_encoder #(
+        .INPUT_W        (NUM_REGION)
+    ) b_mapper (
+        .i              (m_bvalid_dist),
+        .o              (m_bvalid_map)
+    );
+end
+else begin : SINGLE_REGION
+    assign m_bvalid_map = 1'b0;
+end
 for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin : B_SB_GEN
     skid_buffer #(
         .SBUF_TYPE      (4),    // Bypass
@@ -178,5 +188,12 @@ endgenerate
     assign s_wready         = m_wready & m_wvalid; // Mask the corresponding m_wready bit by using bit mask in m_wvalid
     assign w_order_rvalid   = s_wready & s_wlast;
     // B channel
-
+    assign s_bid_o          = m_bid[m_bvalid_map];
+    assign s_bresp_o        = m_bresp[m_bvalid_map];
+    assign s_bvalid_o       = m_bvalid[m_bvalid_map];
+generate
+for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin : M_BREADY_GEN
+    assign m_bready[region_idx] = s_bready_i & (region_idx == m_bvalid_map);
+end
+endgenerate
 endmodule
