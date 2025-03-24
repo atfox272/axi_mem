@@ -10,13 +10,13 @@
 // `define CUSTOMIZE_MODE
 
 /*  Monitor enable  */ 
-// `define MONITOR_AW_CHANNEl
+`define MONITOR_AW_CHANNEl
 // `define MONITOR_W_CHANNEl
-// `define MONITOR_B_CHANNEl
-`define MONITOR_AR_CHANNEl
-`define MONITOR_R_CHANNEl
+`define MONITOR_B_CHANNEl
+// `define MONITOR_AR_CHANNEl
+// `define MONITOR_R_CHANNEl
 
-`define END_TIME        100
+`define END_TIME        1000
 
 // Slave device physical timing simulation
 `define SLV_DVC_LATENCY 2 // Time unit
@@ -39,8 +39,8 @@ module axi4_mem_tb;
     parameter MEM_INIT_FILE     = "";               // Initial value in Memory
     // Memory region
     parameter NUM_REGION        = 4;
-    parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {32'h2000_0000,   32'h2100_0000,  32'h2200_0000,  32'h2300_0000};
-    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {32'd32,          32'd16,         32'h64,         32'd128};
+    parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {32'h2300_0000,   32'h2200_0000,  32'h2100_0000,  32'h2000_0000};
+    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {32'd32,          32'd16,         32'h4,          32'd128};
 
     // Input declaration
     // -- Global 
@@ -148,7 +148,7 @@ module axi4_mem_tb;
                 // Wrong mapping
                 s_aw_transfer(.s_awid(5'h00), .s_awaddr(32'h3000_0000), .s_awburst(2'b00), .s_awlen(8'd01));
                 // 1st: Request for TX_DATA
-                s_aw_transfer(.s_awid(5'h01), .s_awaddr(32'h2100_0000), .s_awburst(2'b01), .s_awlen(8'd05));
+                s_aw_transfer(.s_awid(5'h01), .s_awaddr(32'h2100_0001), .s_awburst(2'b01), .s_awlen(8'd06));
                 // 2nd: Request for CONF_REG 
                 s_aw_transfer(.s_awid(5'h02), .s_awaddr(32'h2000_0000), .s_awburst(2'b01), .s_awlen(8'd03));
                 // 3th: Request for TX_DATA 
@@ -165,77 +165,69 @@ module axi4_mem_tb;
                 s_w_transfer(.s_wdata(32'h08), .s_wlast(1'b0)); 
                 s_w_transfer(.s_wdata(32'h08), .s_wlast(1'b1));  
                 // 1st
-                s_w_transfer(.s_wdata(32'h01), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(32'h02), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(32'h03), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(32'h04), .s_wlast(1'b0));   
-                s_w_transfer(.s_wdata(32'h05), .s_wlast(1'b0));   
-                s_w_transfer(.s_wdata(32'h06), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(32'h07), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(32'h08), .s_wlast(1'b1));   
+                s_w_transfer(.s_wdata(32'h11), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(32'h12), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(32'h13), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(32'h14), .s_wlast(1'b0));   
+                s_w_transfer(.s_wdata(32'h15), .s_wlast(1'b0));   
+                s_w_transfer(.s_wdata(32'h16), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(32'h17), .s_wlast(1'b1));
                 // 2nd
-                s_w_transfer(.s_wdata(8'h11), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h22), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h33), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h44), .s_wlast(1'b1));
+                s_w_transfer(.s_wdata(8'h00), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h01), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h02), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h03), .s_wlast(1'b1));
                 // 3th
-                s_w_transfer(.s_wdata(8'h2A), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h3A), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h4A), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h5A), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h6A), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'hFA), .s_wlast(1'b1));
+                s_w_transfer(.s_wdata(8'h1A), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h1A), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h1A), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h1A), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h1A), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h1A), .s_wlast(1'b1));
                 // 4th
-                s_w_transfer(.s_wdata(8'h22), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h33), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h44), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h55), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h66), .s_wlast(1'b0));
-                s_w_transfer(.s_wdata(8'h77), .s_wlast(1'b1));
-                // 5th
                 s_w_transfer(.s_wdata(8'h02), .s_wlast(1'b0));
                 s_w_transfer(.s_wdata(8'h03), .s_wlast(1'b0));
                 s_w_transfer(.s_wdata(8'h04), .s_wlast(1'b0));
                 s_w_transfer(.s_wdata(8'h05), .s_wlast(1'b0));
                 s_w_transfer(.s_wdata(8'h06), .s_wlast(1'b0));
                 s_w_transfer(.s_wdata(8'h07), .s_wlast(1'b1));
+                // 5th
+                s_w_transfer(.s_wdata(8'h32), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h33), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h34), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h35), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h36), .s_wlast(1'b0));
+                s_w_transfer(.s_wdata(8'h37), .s_wlast(1'b1));
                 aclk_cl;
                 s_wvalid_i <= 1'b0;
             end
             begin   : AR_chn
+                repeat(40) aclk_cl;
+
                 // 0th: Request for Wrong address
-                s_ar_transfer(.s_arid(5'h00), .s_araddr(32'h3200_0001), .s_arburst(2'b00), .s_arlen(8'd02));
+                s_ar_transfer(.s_arid(5'h1f), .s_araddr(32'h3200_0001), .s_arburst(2'b00), .s_arlen(8'd02));
                 // 1st: Request for RX_DATA[1]
-                s_ar_transfer(.s_arid(5'h01), .s_araddr(32'h2200_0001), .s_arburst(2'b01), .s_arlen(8'd01));
+                s_ar_transfer(.s_arid(5'h03), .s_araddr(32'h2300_0001), .s_arburst(2'b01), .s_arlen(8'd03));
                 aclk_cl;
                 s_arvalid_i <= 1'b0;
                 
                 repeat(30) aclk_cl;
 
                 // 2nd: Request for RX_DATA[0]
-                s_ar_transfer(.s_arid(5'h02), .s_araddr(32'h2200_0000), .s_arburst(2'b01), .s_arlen(8'd01));
+                s_ar_transfer(.s_arid(5'h01), .s_araddr(32'h2100_0000), .s_arburst(2'b01), .s_arlen(8'd05));
                 // 3rd: Request for MEM
-                s_ar_transfer(.s_arid(5'h03), .s_araddr(32'h2300_0000), .s_arburst(2'b01), .s_arlen(8'd08));
+                s_ar_transfer(.s_arid(5'h00), .s_araddr(32'h2000_0000), .s_arburst(2'b01), .s_arlen(8'd08));
                 // 4th: Request for MEM
-                s_ar_transfer(.s_arid(5'h04), .s_araddr(32'h2300_0006), .s_arburst(2'b01), .s_arlen(8'd00));
+                s_ar_transfer(.s_arid(5'h01), .s_araddr(32'h2100_0003), .s_arburst(2'b01), .s_arlen(8'd05));
                 aclk_cl;
                 s_arvalid_i <= 1'b0;
 
                 repeat(30) aclk_cl;
-
-                // 5th: Request for MEM
-                s_ar_transfer(.s_arid(5'h05), .s_araddr(32'h2300_0005), .s_arburst(2'b01), .s_arlen(8'd08));
-                aclk_cl;
-                s_arvalid_i <= 1'b0;
-                // 6th: Request for STAT REG
-                s_ar_transfer(.s_arid(5'h06), .s_araddr(32'h2400_0001), .s_arburst(2'b01), .s_arlen(8'd03));
-                // 7th: Request for STAT REG
-                s_ar_transfer(.s_arid(5'h07), .s_araddr(32'h2000_0000), .s_arburst(2'b01), .s_arlen(8'd07));
-                aclk_cl;
-                s_arvalid_i <= 1'b0;
             end
             begin: R_chn
                 int cnt;
+                repeat(40) aclk_cl;
+
                 // TODO: monitor the response data
                 while(1'b1) begin
                     s_rready_i <= 1'b1;
@@ -268,7 +260,7 @@ module axi4_mem_tb;
                     $display("AWADDR:   0x%8h", s_awaddr_i);
                     $display("AWLEN:    0x%8h", s_awlen_i);
                     $display("-------------------------------");
-                    aclk_cl;
+                    aclk_cl;  aclk_hcl;
                 end
             end
 `endif
@@ -280,7 +272,7 @@ module axi4_mem_tb;
                     $display("WDATA:    0x%8h", s_wdata_i);
                     $display("WLAST:    0x%8h", s_wlast_i);
                     $display("-------------------------------");
-                    aclk_cl;
+                    aclk_cl;  aclk_hcl;
                 end
             end
 `endif
@@ -290,10 +282,10 @@ module axi4_mem_tb;
                 while(1'b1) begin
                     aclk_hcl;
                     wait(s_bready_i & s_bvalid_o); #0.1;  // B hanshaking
-                    $display("\n---------- B channel [%1d] ----------", B_cnt);
-                    $display("BID:      0x%8h", s_bid_o);
-                    $display("BRESP:    0x%8h", s_bresp_o);
-                    $display("---------------------------------------");
+                    $display("\n\t\t\t\t\t\t\t\t\t\t\t\t---------- B channel [%1d] ----------", B_cnt);
+                    $display("\t\t\t\t\t\t\t\t\t\t\t\tBID:      0x%8h", s_bid_o);
+                    $display("\t\t\t\t\t\t\t\t\t\t\t\tBRESP:    0x%8h", s_bresp_o);
+                    $display("\t\t\t\t\t\t\t\t\t\t\t\t---------------------------------------");
                     B_cnt++;
                     aclk_cl;
                 end
@@ -302,13 +294,14 @@ module axi4_mem_tb;
 `ifdef MONITOR_AR_CHANNEl
             begin   : AR_chn
                 while(1'b1) begin
+                    #0.1;
                     wait(s_arready_o & s_arvalid_i); #0.1;  // AR hanshaking
                     $display("\n---------- AR channel ----------");
                     $display("ARID:     0x%8h", s_arid_i);
                     $display("ARADDR:   0x%8h", s_araddr_i);
                     $display("ARLEN:    0x%8h", s_arlen_i);
                     $display("-------------------------------");
-                    aclk_cl;
+                    aclk_cl; aclk_hcl;
                 end
             end
 `endif
