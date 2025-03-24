@@ -188,7 +188,7 @@ endgenerate
     assign m_wdata          = s_wdata;
     assign m_wlast          = s_wlast;
     assign m_wvalid         = {NUM_REGION{w_order_rready & s_wvalid}} & w_region_map; // Mask the corresponding m_wvalid bit
-    assign s_wready         = m_wready & m_wvalid; // Mask the corresponding m_wready bit by using bit mask in m_wvalid
+    assign s_wready         = |(m_wready & m_wvalid); // Mask the corresponding m_wready bit by using bit mask in m_wvalid
     assign w_order_rvalid   = s_wready & s_wlast;
     // B channel
     assign s_bid_o          = m_bid_dist[m_bvalid_map];

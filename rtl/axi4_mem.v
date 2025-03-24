@@ -10,7 +10,7 @@ module axi4_mem
     parameter ATX_OUSTD_NUM     = 1, // Number of outstanding AXI transactions
     // Memory
     parameter MEM_BASE_ADDR     = 32'h0000_0000,    // Address mapping - BASE
-    parameter MEM_OFFSET        = (ATX_DATA_W/8),   // Address mapping - OFFSET ---> Address (byte-access) = (base + offset*n)
+    parameter MEM_OFFSET        = 1,                // Address mapping - OFFSET ---> Address (word-access) = (base + offset*n)
     parameter MEM_DATA_W        = ATX_DATA_W,       // Memory's data width
     parameter MEM_ADDR_W        = 5,                // Memory's address width
     parameter MEM_LATENCY       = 1,                // Memory latency
