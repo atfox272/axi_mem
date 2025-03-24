@@ -4,3 +4,5 @@ axi4_mem.ip_user_files
 axi4_mem.runs
 axi4_mem.sim
 axi4_mem.xpr
+sim/axi4_mem
+sim/rc.do

@@ -121,7 +121,7 @@ endgenerate
     assign m_araddr         = s_araddr;
     assign m_arburst        = s_arburst;
     assign m_arlen          = s_arlen;
-    assign m_arvalid        = s_arvalid_flt;
+    assign m_arvalid        = {NUM_REGION{s_arvalid_flt}} & ar_region_msk;
     assign s_arready_flt    = |(m_arready & ar_region_msk); // "|(m_arready & ar_region_map)": mapped arready is valid 
     assign s_arvalid_flt    = s_arvalid & s_arready_flt;
     assign s_arready        = s_arready_flt;
