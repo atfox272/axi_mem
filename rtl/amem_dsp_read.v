@@ -62,6 +62,7 @@ module amem_dsp_read #(
     wire                            s_arvalid_flt;
     wire                            s_arready_flt;
     wire    [NUM_REGION-1:0]        ar_region_map;
+    wire    [NUM_REGION-1:0]        ar_region_msk;
     
     wire    [ATX_ID_W-1:0]          m_rid_dist      [0:NUM_REGION-1];
     wire    [ATX_DATA_W-1:0]        m_rdata_dist    [0:NUM_REGION-1];
@@ -121,8 +122,10 @@ endgenerate
     assign m_arburst        = s_arburst;
     assign m_arlen          = s_arlen;
     assign m_arvalid        = s_arvalid_flt;
-    assign s_arready_flt    = |(m_arready & ar_region_map); // "|(m_arready & ar_region_map)": mapped arready is valid 
+    assign s_arready_flt    = |(m_arready & ar_region_msk); // "|(m_arready & ar_region_map)": mapped arready is valid 
     assign s_arvalid_flt    = s_arvalid & s_arready_flt;
+    assign s_arready        = s_arready_flt;
+    assign ar_region_msk    = |(ar_region_map) ? ar_region_map : {{(NUM_REGION-1){1'b0}}, 1'b1}; // If the mapped region exists -> select ar_region_map \ Else select region[0] by default
 generate
 for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin : REIGON_MAP_GEN
     // ar_region_map == 1 when (s_addr >= base_addr) && (s_addr < (base_addr + size)) 
@@ -131,14 +134,14 @@ for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin 
 end
 endgenerate
     // R channel
-    assign s_rid_o          = m_rid[m_rvalid_map];
-    assign s_rdata_o        = m_rdata[m_rvalid_map];
-    assign s_rlast_o        = m_rlast[m_rvalid_map];
-    assign s_rresp_o        = m_rresp[m_rvalid_map];
-    assign s_rvalid_o       = m_rvalid[m_rvalid_map];
+    assign s_rid_o          = m_rid_dist[m_rvalid_map];      
+    assign s_rdata_o        = m_rdata_dist[m_rvalid_map];    
+    assign s_rlast_o        = m_rlast_dist[m_rvalid_map];    
+    assign s_rresp_o        = m_rresp_dist[m_rvalid_map];    
+    assign s_rvalid_o       = m_rvalid_dist[m_rvalid_map];
 generate
 for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin : M_RREADY_GEN
-    assign m_rready[region_idx] = s_rready_i & (region_idx == m_rvalid_map);
+    assign m_rready_dist[region_idx] = s_rready_i & (region_idx == m_rvalid_map);
 end
 endgenerate
 endmodule

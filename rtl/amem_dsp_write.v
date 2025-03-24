@@ -71,6 +71,7 @@ module amem_dsp_write #(
     wire                            s_awvalid_flt;
     wire                            s_awready_flt;
     wire    [NUM_REGION-1:0]        aw_region_map;
+    wire    [NUM_REGION-1:0]        aw_region_msk;
     wire                            aw_order_wready;
     wire    [NUM_REGION-1:0]        w_region_map;
     wire                            w_order_rready;
@@ -109,7 +110,7 @@ module amem_dsp_write #(
         .FIFO_DEPTH     (PROC_OUTSTD_NUM)
     ) s_aw_order (
         .clk            (clk),
-        .data_i         (aw_region_map),
+        .data_i         (aw_region_msk),
         .wr_valid_i     (s_awvalid_flt),
         .wr_ready_o     (aw_order_wready),
         .data_o         (w_region_map),
@@ -171,9 +172,11 @@ endgenerate
     assign m_awaddr         = s_awaddr;
     assign m_awburst        = s_awburst;
     assign m_awlen          = s_awlen;
-    assign m_awvalid        = s_awvalid_flt;
-    assign s_awready_flt    = |(m_awready & aw_region_map) & aw_order_wready; // "|(m_awready & aw_region_map)": mapped awready is valid 
+    assign m_awvalid        = {NUM_REGION{s_awvalid_flt}} & aw_region_msk;
+    assign s_awready_flt    = |(m_awready & aw_region_msk) & aw_order_wready; // "|(m_awready & aw_region_msk)": mapped awready is valid 
     assign s_awvalid_flt    = s_awvalid & s_awready_flt;
+    assign s_awready        = s_awready_flt;
+    assign aw_region_msk    = |(aw_region_map) ? aw_region_map : {{(NUM_REGION-1){1'b0}}, 1'b1}; // If the mapped region exists -> select aw_region_map \ Else select region[0] by default
 generate
 for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin : REIGON_MAP_GEN
     // aw_region_map == 1 when (s_addr >= base_addr) && (s_addr < (base_addr + size)) 
@@ -188,12 +191,12 @@ endgenerate
     assign s_wready         = m_wready & m_wvalid; // Mask the corresponding m_wready bit by using bit mask in m_wvalid
     assign w_order_rvalid   = s_wready & s_wlast;
     // B channel
-    assign s_bid_o          = m_bid[m_bvalid_map];
-    assign s_bresp_o        = m_bresp[m_bvalid_map];
-    assign s_bvalid_o       = m_bvalid[m_bvalid_map];
+    assign s_bid_o          = m_bid_dist[m_bvalid_map];
+    assign s_bresp_o        = m_bresp_dist[m_bvalid_map];
+    assign s_bvalid_o       = m_bvalid_dist[m_bvalid_map];
 generate
 for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin : M_BREADY_GEN
-    assign m_bready[region_idx] = s_bready_i & (region_idx == m_bvalid_map);
+    assign m_bready_dist[region_idx] = s_bready_i & (region_idx == m_bvalid_map);
 end
 endgenerate
 endmodule

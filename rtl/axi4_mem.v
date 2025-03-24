@@ -13,13 +13,12 @@ module axi4_mem
     parameter MEM_OFFSET        = (ATX_DATA_W/8),   // Address mapping - OFFSET ---> Address (byte-access) = (base + offset*n)
     parameter MEM_DATA_W        = ATX_DATA_W,       // Memory's data width
     parameter MEM_ADDR_W        = 5,                // Memory's address width
-    parameter MEM_SIZE          = 1<<MEM_ADDR_W,    // Memory size
     parameter MEM_LATENCY       = 1,                // Memory latency
     parameter MEM_INIT_FILE     = "",               // Initial value in Memory
     // Memory region
-    parameter NUM_REGION        = 4,
-    parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {32'h0000_0000, 32'h0000_1000, 32'h0000_2000, 32'h0000_3000},
-    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {NUM_REGION{32'd8}}
+    parameter NUM_REGION        = 1,
+    parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {NUM_REGION{MEM_BASE_ADDR}},
+    parameter [NUM_REGION*32-1:0]         REGION_SIZE       = {NUM_REGION{32'd0}}
 ) (
     // -- Global 
     input                           clk,
