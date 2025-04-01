@@ -14,7 +14,7 @@ module axi4_mem
     parameter MEM_DATA_W        = ATX_DATA_W,       // Memory's data width
     parameter MEM_ADDR_W        = 5,                // Memory's address width
     parameter MEM_LATENCY       = 1,                // Memory latency
-    parameter MEM_INIT_FILE     = "",               // Initial value in Memory
+    parameter MEM_INIT_FILE     = "",               // Initial value in Memory (first region only)
     // Memory region
     parameter NUM_REGION        = 1,
     parameter [NUM_REGION*ATX_ADDR_W-1:0] REGION_BASE_ADDR  = {NUM_REGION{MEM_BASE_ADDR}},
@@ -239,7 +239,7 @@ for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin 
         .wr_st_rd_rdy_o     (),
         .rd_st_wr_rdy_o     ()
     );
-
+if(region_idx == 0) begin : FIRST_REGION
     memory #(
         .DATA_W             (MEM_DATA_W),
         .ADDR_W             (MEM_ADDR_W),
@@ -257,6 +257,27 @@ for(region_idx = 0; region_idx < NUM_REGION; region_idx = region_idx + 1) begin 
         .rd_data_o          (mem_rd_data[region_idx]),
         .rd_rdy_o           (mem_rd_rdy[region_idx])
     );
+end
+else begin
+    memory #(
+        .DATA_W             (MEM_DATA_W),
+        .ADDR_W             (MEM_ADDR_W),
+        .MEM_SIZE           (REGION_SIZE[(region_idx+1)*32-1-:32]),
+        .MEM_FILE           ()
+    ) mem (
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .wr_data_i          (mem_wr_data[region_idx]),
+        .wr_addr_i          (mem_wr_addr[region_idx]),
+        .wr_vld_i           (mem_wr_vld[region_idx]),
+        .rd_addr_i          (mem_rd_addr[region_idx]),
+        .rd_vld_i           (mem_rd_vld[region_idx]),
+        .wr_rdy_o           (mem_wr_rdy[region_idx]),
+        .rd_data_o          (mem_rd_data[region_idx]),
+        .rd_rdy_o           (mem_rd_rdy[region_idx])
+    );
+end
+
 end
 endgenerate
 endmodule
