@@ -1,0 +1,1 @@
+./../tb/axi4_mem_tb.sv
